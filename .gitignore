@@ -1,0 +1,2 @@
+.eggs/
+ansible_role_tripleo_prep_overcloud_images.egg-info/
