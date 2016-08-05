@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Prepare the overcloud images for deploy
+
+set -eux
+
+# Source in undercloud credentials.
+source {{ working_dir }}/stackrc
+
+# Upload images to glance.
+openstack overcloud image upload \
+    {% if bash_deploy_ramdisk %}--old-deploy-image{% endif %}
+
+openstack baremetal import --json instackenv.json
+openstack baremetal configure boot
+
+# Perform introspection if requested.
+{% if step_introspect %}
+openstack baremetal introspection bulk start
+{% endif %}

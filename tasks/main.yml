@@ -1,0 +1,37 @@
+# Extract the undercloud admin password from
+# `undercloud-passwords.conf`.
+ name: Get undercloud admin password
+  command: >
+    awk -F= '$1 == "undercloud_admin_password" {print $2}'
+    {{ working_dir }}/undercloud-passwords.conf
+  register: undercloud_admin_password
+
+- name: Copy stackrc to ansible host
+  tags:
+    - undercloud-post-install
+  fetch:
+    flat: true
+    src: stackrc
+    dest: "{{ local_working_dir }}/stackrc"
+
+# We need this (and the previous task) in order to replace the
+# # `sudo hiera admin_password` with an actual password in the `stackrc`
+# # file.
+- name: Update admin password in local credentials file
+  delegate_to: localhost
+  lineinfile:
+    dest: "{{ local_working_dir }}/stackrc"
+    line: "export OS_PASSWORD={{ undercloud_admin_password.stdout }}"
+    regexp: "OS_PASSWORD"
+
+- name: Create undercloud overcloud-images script
+  template:
+    src: "{{ prep_overcloud_images_script }}"
+    dest: "{{ working_dir }}/prep-overcloud-images.sh"
+    mode: 0755
+
+- name: Prepare the images for overcloud deploy
+  shell: |
+    {{ working_dir }}/prep-overcloud-images.sh > \
+    {{ prep_overcloud_images_log }} 2>&1
+

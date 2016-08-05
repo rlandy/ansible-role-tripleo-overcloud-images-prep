@@ -1,0 +1,7 @@
+---
+working_dir: /home/stack
+prep_overcloud_images_script: prep-overcloud-images.sh.j2
+prep_overcloud_images_log: "{{ working_dir }}/prep-overcloud-image.log"
+
+step_introspect: false
+bash_deploy_ramdisk: false
